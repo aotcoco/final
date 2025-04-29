@@ -5,7 +5,7 @@ from pyfingerprint.pyfingerprint import PyFingerprint
 def initialize_sensor():
     """Initialize the fingerprint sensor."""
     try:
-        sensor = PyFingerprint('/dev/serial0', 57600, 0xFFFFFFFF, 0x00000000)
+        sensor = PyFingerprint('/dev/ttyAMA10', 57600, 0xFFFFFFFF, 0x00000000)
 
         if not sensor.verifyPassword():
             raise ValueError('The fingerprint sensor password is incorrect.')
