@@ -48,6 +48,7 @@ def search_fingerprint(sensor):
         print('💥 Error during fingerprint matching:')
         print(f'⚠️ {e}')
 
+# ✅ Corrected block to run the main logic
 if _name_ == '_main_':
     sensor = initialize_sensor()
     while True:
