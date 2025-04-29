@@ -1,37 +1,53 @@
+from pyfingerprint.pyfingerprint import PyFingerprint
 import time
-import board
-import busio
-from adafruit_fingerprint import Adafruit_Fingerprint
+import sys
 
-# Initialize UART on GPIO14 (TX) and GPIO15 (RX)
-uart = busio.UART(board.TX, board.RX, baudrate=57600)
+def initialize_sensor():
+    """Initializes the fingerprint sensor on serial0."""
+    try:
+        sensor = PyFingerprint('/dev/serial0', 57600, 0xFFFFFFFF, 0x00000000)
 
-# Initialize the sensor
-finger = Adafruit_Fingerprint(uart)
+        if not sensor.verifyPassword():
+            raise ValueError('Wrong sensor password!')
 
-def get_fingerprint():
-    print("Waiting for finger...")
-    while finger.get_image() != Adafruit_Fingerprint.OK:
-        pass
+        print('✅ Sensor initialized successfully.')
+        print('📦 Stored templates:', sensor.getTemplateCount())
+        print('🧠 Available storage slots:', sensor.getStorageCapacity())
+        return sensor
 
-    if finger.image_2_tz(1) != Adafruit_Fingerprint.OK:
-        return False
+    except Exception as e:
+        print('❌ Failed to initialize sensor.')
+        print('💥 Error:', str(e))
+        sys.exit(1)
 
-    if finger.finger_search() != Adafruit_Fingerprint.OK:
-        return False
+def search_fingerprint(sensor):
+    """Searches for a fingerprint match."""
+    try:
+        print('\n👉 Waiting for finger...')
 
-    print("Found fingerprint!")
-    print("Fingerprint ID:", finger.finger_id)
-    print("Confidence:", finger.confidence)
-    return True
+        while not sensor.readImage():
+            time.sleep(0.1)
 
-if _name_ == "_main_":
+        print('🖼️ Fingerprint image captured.')
+
+        sensor.convertImage(0x01)
+        result = sensor.searchTemplate()
+
+        position_number = result[0]
+        accuracy_score = result[1]
+
+        if position_number >= 0:
+            print(f'✅ Match found at ID #{position_number}')
+            print(f'🎯 Accuracy score: {accuracy_score}')
+        else:
+            print('❌ No match found.')
+
+    except Exception as e:
+        print('💥 Error during fingerprint scan:', str(e))
+
+if _name_ == '_main_':
+    sensor = initialize_sensor()
     while True:
-        try:
-            if get_fingerprint():
-                print("Access granted.")
-            else:
-                print("No match found.")
-        except Exception as e:
-            print("Error:", e)
-        time.sleep(2)
+        search_fingerprint(sensor)
+        print('\n⏳ Scan again in 3 seconds...')
+        time.sleep(3)
