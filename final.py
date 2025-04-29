@@ -3,14 +3,14 @@ import sys
 from pyfingerprint.pyfingerprint import PyFingerprint
 
 def initialize_sensor():
-    """Initialize the fingerprint sensor via UART."""
+    """Initialize the fingerprint sensor."""
     try:
         sensor = PyFingerprint('/dev/serial0', 57600, 0xFFFFFFFF, 0x00000000)
 
         if not sensor.verifyPassword():
-            raise ValueError('The fingerprint sensor password is wrong.')
+            raise ValueError('The fingerprint sensor password is incorrect.')
 
-        print('\n✅ Sensor initialized.')
+        print('\n✅ Fingerprint sensor initialized.')
         print(f'📦 Templates stored: {sensor.getTemplateCount()}')
         print(f'🧠 Capacity: {sensor.getStorageCapacity()}')
         return sensor
@@ -20,7 +20,7 @@ def initialize_sensor():
         sys.exit(1)
 
 def scan_fingerprint(sensor):
-    """Scan and search for a fingerprint match."""
+    """Scan a fingerprint and search for a match."""
     try:
         print('\n👉 Place your finger on the sensor...')
 
@@ -28,22 +28,20 @@ def scan_fingerprint(sensor):
             time.sleep(0.1)
 
         print('🖼️ Image captured.')
-
         sensor.convertImage(0x01)
         result = sensor.searchTemplate()
         position, accuracy = result
 
         if position >= 0:
-            print(f'✅ Match found at ID #{position}, accuracy: {accuracy}')
+            print(f'✅ Match found! ID #{position}, Accuracy: {accuracy}')
         else:
             print('❌ No match found.')
 
     except Exception as e:
-        print('💥 Error during scan:', e)
+        print('💥 Scan error:', e)
 
-# ✅ Main logic starts here — correctly written
-if _name_ == '_main_':
-    sensor = initialize_sensor()
-    while True:
-        scan_fingerprint(sensor)
-        time.sleep(3)
+# 🚀 NEW LOGIC: Runs immediately
+sensor = initialize_sensor()
+while True:
+    scan_fingerprint(sensor)
+    time.sleep(3)
